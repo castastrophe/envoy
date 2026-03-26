@@ -1,15 +1,10 @@
-# 1.0.0 (2026-03-26)
+# Changelog
 
-### Features
+All notable changes to this project will be documented in this file. See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
-- initial commit of @allons-y/envoy ([3f2779d](https://github.com/castastrophe/envoy/commit/3f2779db831ad97f1dd07a636d329a531c499f92))
-- initial commit of @allons-y/envoy ([24cd6ba](https://github.com/castastrophe/envoy/commit/24cd6baa8033ad62703598aa6a4e2ff8e0f9835f))
-- **mcp:** export copyEnvToolHandler and add unit tests ([1182b5f](https://github.com/castastrophe/envoy/commit/1182b5f903d0a659f86f697e5921d9a86028693f))
+## [1.0.0](https://github.com/castastrophe/envoy/releases/tag/v1.0.0) (2026-03-26)
 
-# 1.0.0 (2026-03-26)
+### ✨ Features
 
-### Features
-
-- initial commit of @allons-y/envoy ([3f2779d](https://github.com/castastrophe/envoy/commit/3f2779db831ad97f1dd07a636d329a531c499f92))
-- initial commit of @allons-y/envoy ([24cd6ba](https://github.com/castastrophe/envoy/commit/24cd6baa8033ad62703598aa6a4e2ff8e0f9835f))
-- **mcp:** export copyEnvToolHandler and add unit tests ([1182b5f](https://github.com/castastrophe/envoy/commit/1182b5f903d0a659f86f697e5921d9a86028693f))
+- initial release of `@allons-y/envoy` — CLI, MCP server, and core `copyEnv` library ([3f2779d](https://github.com/castastrophe/envoy/commit/3f2779db831ad97f1dd07a636d329a531c499f92))
+- **mcp:** export `copyEnvToolHandler` for direct unit testing; register as named tool handler ([1182b5f](https://github.com/castastrophe/envoy/commit/1182b5f903d0a659f86f697e5921d9a86028693f))
