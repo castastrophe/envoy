@@ -9,6 +9,7 @@ on:
 
 permissions:
   contents: read
+  pull-requests: write
 
 jobs:
   build-validation:
@@ -16,6 +17,8 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest]
     runs-on: ${{ matrix.os }}
+    env:
+      CI: true
 
     steps:
       - name: Check out code
@@ -42,11 +45,23 @@ jobs:
 
       - name: Test
         if: startsWith(matrix.os, 'ubuntu')
-        run: yarn coverage --coverageReporters=json-summary --coverageReporters=lcov
+        run: yarn coverage
 
-      - name: Upload coverage artifact
-        if: startsWith(matrix.os, 'ubuntu')
-        uses: actions/upload-artifact@v7
+      - name: Coverage summary
+        uses: irongut/CodeCoverageSummary@v1.3.0
+        if: startsWith(matrix.os, 'ubuntu') && github.event_name == 'pull_request'
         with:
-          name: coverage-report
-          path: coverage/
+          filename: coverage/cobertura-coverage.xml
+          badge: true
+          fail_below_min: true
+          format: markdown
+          hide_branch_rate: false
+          indicators: true
+          output: both
+
+      - name: Add Coverage PR Comment
+        uses: marocchino/sticky-pull-request-comment@v3.0.2
+        if: startsWith(matrix.os, 'ubuntu') && github.event_name == 'pull_request'
+        with:
+          recreate: true
+          path: code-coverage-results.md

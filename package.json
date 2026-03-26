@@ -6,7 +6,7 @@
   "author": "Cassondra Roberts <castastrophe@users.noreply.github.com> (https://allons-y.llc)",
   "repository": {
     "type": "git",
-    "url": "https://github.com/castastrophe/envoy.git"
+    "url": "git+https://github.com/castastrophe/envoy.git"
   },
   "bugs": {
     "url": "https://github.com/castastrophe/envoy/issues"
@@ -27,7 +27,7 @@
   "scripts": {
     "coverage": "c8 yarn test",
     "prepack": "pinst --disable",
-    "postinstall": "husky && envoy",
+    "postinstall": "husky && envoy || true",
     "postpack": "pinst --enable",
     "release": "semantic-release",
     "test": "ava"

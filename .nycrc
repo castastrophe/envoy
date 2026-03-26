@@ -4,9 +4,10 @@
         "test.js"
     ],
     "reporter": [
-        "html",
-        "text"
+        "text",
+        "cobertura"
     ],
+
     "lines": 95,
     "branches": "82",
     "statements": "95"
