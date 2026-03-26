@@ -1,3 +1,9 @@
+## [1.1.0](https://github.com/castastrophe/envoy/compare/v1.0.0...v1.1.0) (2026-03-26)
+
+### ✨ Features
+
+- add git safety checks when writing .env files ([5407f2c](https://github.com/castastrophe/envoy/commit/5407f2c2bb3bc2593e3de6c90cb7c8888c8f19ed))
+
 # Changelog
 
 All notable changes to this project will be documented in this file. See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
