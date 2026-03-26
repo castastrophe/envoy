@@ -42,4 +42,11 @@ jobs:
 
       - name: Test
         if: startsWith(matrix.os, 'ubuntu')
-        run: yarn coverage
+        run: yarn coverage --coverageReporters=json-summary --coverageReporters=lcov
+
+      - name: Upload coverage artifact
+        if: startsWith(matrix.os, 'ubuntu')
+        uses: actions/upload-artifact@v6
+        with:
+          name: coverage-report
+          path: coverage/
