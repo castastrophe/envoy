@@ -1,21 +1,21 @@
-<p align="center">
+<div align="center">
   <img width="250" src="https://github.com/castastrophe/envoy/blob/main/logo-envoy.png?raw=true">
-</p>
+</div>
 <h1 align="center">Envoy</h1>
 <p align="center">
   <b>Environment setup, handled.</b>
 </p>
 
-<br>
+<div align="center">
 
 [![Tests][github-image]][github-url]
 [![NPM version][npm-image]][npm-url]
 [![Coverage][coverage-image]][coverage-url]
 [![Conventional Commits][conventional-commits-image]][conventional-commits-url]
 
----
+</div>
 
-> Copy the values you've already stored in `~/.env` into every project's `.env` — automatically, accurately, and without touching secrets you haven't defined.
+Copy the values you've already stored in `~/.env` into every project's `.env` — automatically, accurately, and without touching secrets you haven't defined.
 
 ```sh
 yarn dlx @allons-y/envoy
@@ -41,19 +41,38 @@ If you keep a root `~/.env` with your real values (and you should), **envoy brid
 
 ## Installation
 
-```sh
-yarn add --dev @allons-y/envoy
-```
+### Prerequisites
+
+Envoy reads from a root `~/.env` file on your machine. If you don't have one yet, create it and add any values you want shared across projects:
 
 ```sh
+# ~/.env
+DATABASE_URL=postgres://localhost:5432/mydb
+STRIPE_SECRET_KEY=sk_test_...
+OPENAI_API_KEY=sk-...
+```
+
+Any key that isn't in `~/.env` will fall back to the value in your `.env.example`, so you can add keys incrementally — you don't need to migrate everything up front.
+
+### Try it without installing
+
+Run envoy once in any project directory without adding it as a dependency:
+
+```sh
+yarn dlx @allons-y/envoy
+npx @allons-y/envoy
+pnpm dlx @allons-y/envoy
+bunx @allons-y/envoy
+```
+
+### Add to a project
+
+Install as a dev dependency to use envoy in scripts, hooks, or CI:
+
+```sh
+yarn add --dev @allons-y/envoy   # Yarn Berry
 npm install --save-dev @allons-y/envoy
-```
-
-```sh
 pnpm add --save-dev @allons-y/envoy
-```
-
-```sh
 bun add --dev @allons-y/envoy
 ```
 
