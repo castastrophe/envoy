@@ -34,6 +34,12 @@ const argv = yargs(hideBin(process.argv))
     type: "string",
     description: "Directory to scan (default: current directory)",
   })
+  .option("skip-audit", {
+    alias: "s",
+    type: "boolean",
+    description: "Skip the gitignore and git-tracking safety checks",
+    default: false,
+  })
   .help()
   .parseSync();
 
@@ -43,6 +49,7 @@ const results = copyEnv(dir, {
   force: /** @type {boolean} */ (argv.force),
   dryRun: /** @type {boolean} */ (argv["dry-run"]),
   rootEnvPath: /** @type {string | undefined} */ (argv.root),
+  skipAudit: /** @type {boolean} */ (argv["skip-audit"]),
 });
 
 if (results.length === 0) {
@@ -50,8 +57,18 @@ if (results.length === 0) {
   process.exit(0);
 }
 
+let hasBlocked = false;
+
 for (const result of results) {
-  if (result.status === "skipped") {
+  if (result.status === "blocked") {
+    hasBlocked = true;
+    console.error(
+      chalk.red(
+        `🚨 Blocked ${result.envPath} — this file is tracked by git. Remove it from version control before proceeding:\n` +
+        `   git rm --cached ${result.envPath}`,
+      ),
+    );
+  } else if (result.status === "skipped") {
     console.log(
       chalk.dim(
         `⏭  Skipped ${result.envPath} — already exists (use --force to overwrite)`,
@@ -63,4 +80,14 @@ for (const result of results) {
   } else {
     console.log(chalk.green(`✨ Created ${result.envPath}`));
   }
+
+  if (result.audit?.isGitRepo && !result.audit.isGitignored && result.status !== "blocked") {
+    console.warn(
+      chalk.yellow(
+        `⚠️  ${result.envPath} is not covered by .gitignore — add it to prevent accidentally committing secrets`,
+      ),
+    );
+  }
 }
+
+if (hasBlocked) process.exit(1);

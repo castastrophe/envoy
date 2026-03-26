@@ -19,11 +19,27 @@ export function formatResults(results) {
 
   return results
     .map((r) => {
-      if (r.status === "skipped")
-        return `Skipped ${r.envPath} — already exists (use force: true to overwrite)`;
-      if (r.status === "would-create")
-        return `Would create ${r.envPath}:\n${r.content}`;
-      return `Created ${r.envPath}`;
+      /** @type {string[]} */
+      const lines = [];
+
+      if (r.status === "blocked") {
+        lines.push(
+          `Blocked ${r.envPath} — this file is tracked by git and cannot be overwritten. ` +
+          `Run: git rm --cached ${r.envPath}`,
+        );
+      } else if (r.status === "skipped") {
+        lines.push(`Skipped ${r.envPath} — already exists (use force: true to overwrite)`);
+      } else if (r.status === "would-create") {
+        lines.push(`Would create ${r.envPath}:\n${r.content}`);
+      } else {
+        lines.push(`Created ${r.envPath}`);
+      }
+
+      if (r.audit?.isGitRepo && !r.audit.isGitignored && r.status !== "blocked") {
+        lines.push(`Warning: ${r.envPath} is not covered by .gitignore`);
+      }
+
+      return lines.join("\n");
     })
     .join("\n");
 }
@@ -39,11 +55,12 @@ const server = new McpServer({
  * @param {{ dir?: string, force?: boolean, dry_run?: boolean, root_env_path?: string }} args
  * @returns {{ content: Array<{ type: string, text: string }> }}
  */
-export function copyEnvToolHandler({ dir, force, dry_run, root_env_path } = {}) {
+export function copyEnvToolHandler({ dir, force, dry_run, root_env_path, skip_audit } = {}) {
   const results = copyEnv(dir, {
     force,
     dryRun: dry_run,
     rootEnvPath: root_env_path,
+    skipAudit: skip_audit,
   });
 
   return {
@@ -75,6 +92,10 @@ server.registerTool(
         .string()
         .optional()
         .describe("Path to the root .env file to source values from (default: ~/.env)"),
+      skip_audit: z
+        .boolean()
+        .optional()
+        .describe("Skip the gitignore and git-tracking safety checks (default: false)"),
     },
   },
   copyEnvToolHandler,

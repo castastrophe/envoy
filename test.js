@@ -6,7 +6,10 @@ import path from "node:path";
 
 import test from "ava";
 
+import { spawnSync } from "node:child_process";
+
 import {
+  auditEnvFile,
   buildEnvContent,
   copyEnv,
   findExampleFiles,
@@ -26,6 +29,28 @@ function tmpDir() {
 /** @param {string} dir */
 function cleanup(dir) {
   fs.rmSync(dir, { recursive: true, force: true });
+}
+
+/**
+ * Initialise a bare git repo in a temp directory, optionally writing a
+ * .gitignore and making an initial commit so the repo has a HEAD.
+ *
+ * @param {{ gitignore?: string }} [opts]
+ * @returns {string} path to the new repo
+ */
+function tmpGitDir({ gitignore = "" } = {}) {
+  const dir = tmpDir();
+  const git = (/** @type {string[]} */ args) =>
+    spawnSync("git", args, { cwd: dir });
+  git(["init"]);
+  git(["config", "user.email", "test@envoy.dev"]);
+  git(["config", "user.name", "Envoy Test"]);
+  if (gitignore) {
+    fs.writeFileSync(path.join(dir, ".gitignore"), gitignore);
+    git(["add", ".gitignore"]);
+    git(["commit", "-m", "init"]);
+  }
+  return dir;
 }
 
 // ─── parseLine ───────────────────────────────────────────────────────────────
@@ -406,4 +431,155 @@ test("copyEnvToolHandler: returns no-files message when dir is empty", (t) => {
   } finally {
     cleanup(dir);
   }
+});
+
+// ─── auditEnvFile ─────────────────────────────────────────────────────────────
+
+test("auditEnvFile: returns isGitRepo false outside a git repo", (t) => {
+  const dir = tmpDir();
+  try {
+    const result = auditEnvFile(path.join(dir, ".env"));
+    t.false(result.isGitRepo);
+    t.false(result.isGitignored);
+    t.false(result.isTracked);
+  } finally {
+    cleanup(dir);
+  }
+});
+
+test("auditEnvFile: isGitignored true when .env is in .gitignore", (t) => {
+  const dir = tmpGitDir({ gitignore: ".env\n" });
+  try {
+    const result = auditEnvFile(path.join(dir, ".env"));
+    t.true(result.isGitRepo);
+    t.true(result.isGitignored);
+    t.false(result.isTracked);
+  } finally {
+    cleanup(dir);
+  }
+});
+
+test("auditEnvFile: isGitignored false when .env is absent from .gitignore", (t) => {
+  const dir = tmpGitDir({ gitignore: "*.log\n" });
+  try {
+    const result = auditEnvFile(path.join(dir, ".env"));
+    t.true(result.isGitRepo);
+    t.false(result.isGitignored);
+    t.false(result.isTracked);
+  } finally {
+    cleanup(dir);
+  }
+});
+
+test("auditEnvFile: isTracked true when .env is committed to the repo", (t) => {
+  const dir = tmpGitDir({ gitignore: "*.log\n" });
+  try {
+    const git = (/** @type {string[]} */ args) =>
+      spawnSync("git", args, { cwd: dir });
+    fs.writeFileSync(path.join(dir, ".env"), "SECRET=oops\n");
+    git(["add", ".env"]);
+    git(["commit", "-m", "accidentally commit .env"]);
+    const result = auditEnvFile(path.join(dir, ".env"));
+    t.true(result.isGitRepo);
+    t.true(result.isTracked);
+  } finally {
+    cleanup(dir);
+  }
+});
+
+// ─── processExampleFile audit integration ────────────────────────────────────
+
+test("processExampleFile: blocks and does not write when .env is tracked", (t) => {
+  const dir = tmpGitDir({ gitignore: "*.log\n" });
+  try {
+    const git = (/** @type {string[]} */ args) =>
+      spawnSync("git", args, { cwd: dir });
+    fs.writeFileSync(path.join(dir, ".env"), "SECRET=tracked\n");
+    git(["add", ".env"]);
+    git(["commit", "-m", "accidentally commit .env"]);
+    fs.writeFileSync(path.join(dir, ".env.example"), "SECRET=example\n");
+    // Remove the existing .env so processExampleFile doesn't skip it
+    fs.rmSync(path.join(dir, ".env"));
+    const result = processExampleFile(
+      path.join(dir, ".env.example"),
+      new Map(),
+    );
+    t.is(result.status, "blocked");
+    t.true(result.audit?.isTracked);
+    t.false(fs.existsSync(path.join(dir, ".env")));
+  } finally {
+    cleanup(dir);
+  }
+});
+
+test("processExampleFile: includes audit result with gitignore warning", (t) => {
+  const dir = tmpGitDir({ gitignore: "*.log\n" });
+  try {
+    fs.writeFileSync(path.join(dir, ".env.example"), "FOO=bar\n");
+    const result = processExampleFile(
+      path.join(dir, ".env.example"),
+      new Map(),
+    );
+    t.is(result.status, "created");
+    t.true(result.audit?.isGitRepo);
+    t.false(result.audit?.isGitignored);
+  } finally {
+    cleanup(dir);
+  }
+});
+
+test("processExampleFile: skipAudit omits audit result entirely", (t) => {
+  const dir = tmpDir();
+  try {
+    fs.writeFileSync(path.join(dir, ".env.example"), "FOO=bar\n");
+    const result = processExampleFile(
+      path.join(dir, ".env.example"),
+      new Map(),
+      { skipAudit: true },
+    );
+    t.is(result.status, "created");
+    t.is(result.audit, undefined);
+  } finally {
+    cleanup(dir);
+  }
+});
+
+// ─── formatResults audit warnings ────────────────────────────────────────────
+
+test("formatResults: describes a blocked result", (t) => {
+  const text = formatResults([
+    {
+      examplePath: "/p/.env.example",
+      envPath: "/p/.env",
+      status: "blocked",
+      audit: { isGitRepo: true, isGitignored: false, isTracked: true },
+    },
+  ]);
+  t.true(text.includes("Blocked /p/.env"));
+  t.true(text.includes("git rm --cached"));
+});
+
+test("formatResults: appends gitignore warning when not gitignored", (t) => {
+  const text = formatResults([
+    {
+      examplePath: "/p/.env.example",
+      envPath: "/p/.env",
+      status: "created",
+      audit: { isGitRepo: true, isGitignored: false, isTracked: false },
+    },
+  ]);
+  t.true(text.includes("Created /p/.env"));
+  t.true(text.includes("not covered by .gitignore"));
+});
+
+test("formatResults: no gitignore warning when properly gitignored", (t) => {
+  const text = formatResults([
+    {
+      examplePath: "/p/.env.example",
+      envPath: "/p/.env",
+      status: "created",
+      audit: { isGitRepo: true, isGitignored: true, isTracked: false },
+    },
+  ]);
+  t.false(text.includes(".gitignore"));
 });

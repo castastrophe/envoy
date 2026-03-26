@@ -32,6 +32,7 @@ If you keep a root `~/.env` with your real values (and you should), **envoy brid
 
 - **Template-driven** — `.env.example` defines the shape; `~/.env` supplies the values
 - **Safe by default** — skips any `.env` that already exists; use `--force` to overwrite
+- **Security-first** — will not copy secrets if `.env` is currently tracked by git; warns the user if it isn't included in `.gitignore`
 - **Monorepo-aware** — recursively finds every `.env.example` under your project root, skipping `node_modules`
 - **Non-destructive** — keys absent from `~/.env` fall back to the example value, so nothing is lost
 - **Comment-preserving** — blank lines and `# comments` in `.env.example` are written as-is
@@ -92,6 +93,7 @@ envoy
 | `--dry-run`     | `-n`  | Preview changes without writing any files      |
 | `--root <path>` | `-r`  | Use a custom root env file (default: `~/.env`) |
 | `--dir <path>`  | `-d`  | Directory to scan (default: current directory) |
+| `--skip-audit`  | `-s`  | Skip the git safety checks                     |
 | `--help`        | `-h`  | Show help                                      |
 
 **Examples:**
@@ -108,6 +110,35 @@ envoy --root ./secrets/.env.shared
 
 # Scan a specific directory
 envoy --dir packages/api
+```
+
+### Security checks
+
+Every time envoy writes a `.env` file it runs two git safety checks automatically:
+
+**1. Git tracking check** — if `.env` is already committed to the repository, envoy refuses to overwrite it and exits with a non-zero code:
+
+```
+🚨 Blocked /your/project/.env — this file is tracked by git. Remove it from
+   version control before proceeding:
+   git rm --cached /your/project/.env
+```
+
+Writing secrets into a tracked file would put them one `git push` away from exposure. Envoy will not do this under any circumstances without `--skip-audit`.
+
+**2. Gitignore check** — if `.env` is not covered by any `.gitignore` rule, envoy writes the file but prints a warning:
+
+```
+⚠️  /your/project/.env is not covered by .gitignore — add it to prevent
+    accidentally committing secrets
+```
+
+Both checks use git's own plumbing (`git check-ignore` and `git ls-files`) so nested `.gitignore` files, global ignores, and `.git/info/exclude` are all respected. In directories that aren't git repositories the checks are skipped silently.
+
+Use `--skip-audit` to bypass both checks — for example, in a non-git environment where git isn't available:
+
+```sh
+envoy --skip-audit
 ```
 
 ### Postinstall hook
@@ -178,18 +209,19 @@ Envoy ships an MCP server so AI tools can call `copy_env` directly. Add it to yo
 }
 ```
 
-The `copy_env` tool accepts `dir`, `force`, `dry_run`, and `root_env_path` — the same options as the CLI.
+The `copy_env` tool accepts `dir`, `force`, `dry_run`, `root_env_path`, and `skip_audit` — the same options as the CLI.
 
 ## How it works
 
 1. Scans `dir` recursively for `.env.example` files (ignoring `node_modules`)
-2. For each one, checks whether a `.env` already exists alongside it
-3. Reads `~/.env` (or `--root`) into a key → value map
-4. Walks every line in `.env.example`:
+2. For each one, checks whether a `.env` already exists alongside it (skips unless `--force`)
+3. Runs git safety checks — blocks if `.env` is tracked; warns if it isn't gitignored
+4. Reads `~/.env` (or `--root`) into a key → value map
+5. Walks every line in `.env.example`:
     - **Comments and blank lines** are written through unchanged
     - **`KEY=VALUE` lines** where `KEY` exists in `~/.env` get the root value substituted
     - **`KEY=VALUE` lines** where `KEY` is absent fall back to the example value
-5. Writes the result to `.env` next to the example file
+6. Writes the result to `.env` next to the example file
 
 No network calls. No config files. No global state.
 
