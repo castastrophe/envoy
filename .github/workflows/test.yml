@@ -7,9 +7,15 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+
 jobs:
   build-validation:
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
 
     steps:
       - name: Check out code
@@ -21,11 +27,19 @@ jobs:
       - name: Use Node LTS version
         uses: actions/setup-node@v6
         with:
+          node-version-file: .nvmrc
           cache: yarn
-          node-version: 24
 
       - name: Install dependencies
         run: yarn install --immutable
 
-      - name: Run tests
+      - name: Lint
+        run: yarn eslint .
+
+      - name: Test
+        if: startsWith(matrix.os, 'windows')
         run: yarn test
+
+      - name: Test
+        if: startsWith(matrix.os, 'ubuntu')
+        run: yarn coverage

@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 // @ts-check
 
-import chalk from "chalk";
 import path from "node:path";
+
+import chalk from "chalk";
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 
@@ -10,10 +11,7 @@ import { copyEnv } from "./index.js";
 
 const argv = yargs(hideBin(process.argv))
   .scriptName("envoy")
-  .usage("$0 [options]")
-  .description(
-    "Copy values from your root ~/.env into project .env files using .env.example as a template.",
-  )
+  .usage("$0 [options]", "Copy values from your root ~/.env into project .env files using .env.example as a template.")
   .option("force", {
     alias: "f",
     type: "boolean",

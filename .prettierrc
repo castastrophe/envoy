@@ -3,12 +3,6 @@
 	"useTabs": true,
 	"overrides": [
     {
-      "files": "*.css",
-      "options": {
-        "printWidth": 500
-      }
-    },
-    {
       "files": ".github/**/*.yml",
       "options": {
         "tabWidth": 4,
