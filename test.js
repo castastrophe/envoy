@@ -14,7 +14,7 @@ import {
   parseLine,
   processExampleFile,
 } from "./index.js";
-import { formatResults } from "./mcp.js";
+import { copyEnvToolHandler, formatResults } from "./mcp.js";
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
@@ -344,4 +344,66 @@ test("formatResults: joins multiple results with newlines", (t) => {
   ]);
   t.true(text.includes("Created /a/.env"));
   t.true(text.includes("Skipped /b/.env"));
+});
+
+// ─── copyEnvToolHandler (MCP) ─────────────────────────────────────────────────
+
+test("copyEnvToolHandler: returns MCP content structure", (t) => {
+  const dir = tmpDir();
+  try {
+    fs.writeFileSync(path.join(dir, ".env.example"), "FOO=bar\n");
+    const response = copyEnvToolHandler({ dir });
+    t.true(Array.isArray(response.content));
+    t.is(response.content[0].type, "text");
+    t.true(typeof response.content[0].text === "string");
+  } finally {
+    cleanup(dir);
+  }
+});
+
+test("copyEnvToolHandler: created result appears in response text", (t) => {
+  const dir = tmpDir();
+  try {
+    fs.writeFileSync(path.join(dir, ".env.example"), "FOO=bar\n");
+    const { content } = copyEnvToolHandler({ dir });
+    t.true(content[0].text.includes("Created"));
+  } finally {
+    cleanup(dir);
+  }
+});
+
+test("copyEnvToolHandler: dry_run does not write files", (t) => {
+  const dir = tmpDir();
+  try {
+    fs.writeFileSync(path.join(dir, ".env.example"), "FOO=bar\n");
+    const { content } = copyEnvToolHandler({ dir, dry_run: true });
+    t.false(fs.existsSync(path.join(dir, ".env")));
+    t.true(content[0].text.includes("Would create"));
+  } finally {
+    cleanup(dir);
+  }
+});
+
+test("copyEnvToolHandler: substitutes values from root_env_path", (t) => {
+  const dir = tmpDir();
+  try {
+    const rootEnv = path.join(dir, "root.env");
+    fs.writeFileSync(rootEnv, "FOO=from-root\n");
+    fs.writeFileSync(path.join(dir, ".env.example"), "FOO=default\n");
+    const { content } = copyEnvToolHandler({ dir, root_env_path: rootEnv });
+    t.true(content[0].text.includes("Created"));
+    t.is(fs.readFileSync(path.join(dir, ".env"), "utf8"), "FOO=from-root\n");
+  } finally {
+    cleanup(dir);
+  }
+});
+
+test("copyEnvToolHandler: returns no-files message when dir is empty", (t) => {
+  const dir = tmpDir();
+  try {
+    const { content } = copyEnvToolHandler({ dir });
+    t.is(content[0].text, "No .env.example files found.");
+  } finally {
+    cleanup(dir);
+  }
 });

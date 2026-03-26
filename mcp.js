@@ -33,6 +33,24 @@ const server = new McpServer({
   version: packageJSON.version,
 });
 
+/**
+ * MCP tool handler for copy_env. Extracted for testability.
+ *
+ * @param {{ dir?: string, force?: boolean, dry_run?: boolean, root_env_path?: string }} args
+ * @returns {{ content: Array<{ type: string, text: string }> }}
+ */
+export function copyEnvToolHandler({ dir, force, dry_run, root_env_path } = {}) {
+  const results = copyEnv(dir, {
+    force,
+    dryRun: dry_run,
+    rootEnvPath: root_env_path,
+  });
+
+  return {
+    content: [{ type: "text", text: formatResults(results) }],
+  };
+}
+
 server.registerTool(
   "copy_env",
   {
@@ -59,21 +77,11 @@ server.registerTool(
         .describe("Path to the root .env file to source values from (default: ~/.env)"),
     },
   },
-  ({ dir, force, dry_run, root_env_path }) => {
-    const results = copyEnv(dir, {
-      force,
-      dryRun: dry_run,
-      rootEnvPath: root_env_path,
-    });
-
-    return {
-      content: [{ type: "text", text: formatResults(results) }],
-    };
-  },
+  copyEnvToolHandler,
 );
 
 // Only start the stdio transport when this file is run directly.
+/* c8 ignore next 3 */
 if (import.meta.url === new URL(process.argv[1], "file:").href) {
-  const transport = new StdioServerTransport();
-  await server.connect(transport);
+  await server.connect(new StdioServerTransport());
 }

@@ -93,7 +93,7 @@ envoy --dir packages/api
 
 ### Postinstall hook
 
-Add envoy to your `postinstall` script so new contributors get a working `.env` the moment they run `npm install`:
+The highest-value place to run envoy is in your project's `postinstall` script. Every contributor who clones the repo and runs their package manager gets a fully populated `.env` automatically — no onboarding doc to follow, no values to track down.
 
 ```json
 {
@@ -102,6 +102,32 @@ Add envoy to your `postinstall` script so new contributors get a working `.env` 
 	}
 }
 ```
+
+Because envoy skips any `.env` that already exists, running it repeatedly is completely safe. Contributors who already have a `.env` won't have their values touched.
+
+**npm vs Yarn**
+
+Use `postinstall` for this hook regardless of which package manager your project uses. While npm supports a `prepare` lifecycle script that only runs during local development, **Yarn Berry does not support `prepare`** — `postinstall` is the correct choice for both.
+
+**Library authors**
+
+If your package is published to npm, a bare `postinstall` will run for every consumer who installs your package as a dependency — which is not what you want. Use [`pinst`](https://github.com/typicode/pinst) to strip the hook from your published tarball:
+
+```sh
+yarn add --dev pinst
+```
+
+```json
+{
+	"scripts": {
+		"postinstall": "envoy",
+		"prepack": "pinst --disable",
+		"postpack": "pinst --enable"
+	}
+}
+```
+
+`pinst --disable` removes `postinstall` from `package.json` before packing, so the published tarball consumers receive contains no hook. `pinst --enable` restores it locally afterward.
 
 ### MCP tool
 
@@ -162,5 +188,5 @@ No network calls. No config files. No global state.
 [npm-url]: https://www.npmjs.com/package/@allons-y/envoy
 [conventional-commits-image]: https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow.svg
 [conventional-commits-url]: https://conventionalcommits.org/
-[coverage-image]: https://img.shields.io/nycrc/@allons-y/envoy
+[coverage-image]: https://img.shields.io/nycrc/castastrophe/envoy
 [coverage-url]: https://github.com/castastrophe/envoy/blob/main/.nycrc
