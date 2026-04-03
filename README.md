@@ -11,7 +11,6 @@
 [![Tests][github-image]][github-url]
 [![NPM version][npm-image]][npm-url]
 [![Coverage][coverage-image]][coverage-url]
-[![Conventional Commits][conventional-commits-image]][conventional-commits-url]
 
 </div>
 
@@ -225,6 +224,12 @@ The `copy_env` tool accepts `dir`, `force`, `dry_run`, `root_env_path`, and `ski
 
 No network calls. No config files. No global state.
 
+## What's next
+
+Envoy is intentionally minimal today — it does one thing and does it well. The bigger vision is to make it the single tool that bridges your personal secrets and every project you work in, without friction or foot-guns. That means smarter value handling, better control over what gets scanned and where, and tighter integration with the safety checks developers already rely on.
+
+Follow along or share your ideas in the [roadmap discussion](https://github.com/castastrophe/envoy/discussions/12).
+
 ## Requirements
 
 - Node.js >= 24.0.0
@@ -237,7 +242,5 @@ No network calls. No config files. No global state.
 [github-url]: https://github.com/castastrophe/envoy/actions/workflows/test.yml
 [npm-image]: https://img.shields.io/npm/v/@allons-y/envoy.svg
 [npm-url]: https://www.npmjs.com/package/@allons-y/envoy
-[conventional-commits-image]: https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow.svg
-[conventional-commits-url]: https://conventionalcommits.org/
 [coverage-image]: https://img.shields.io/nycrc/castastrophe/envoy
 [coverage-url]: https://github.com/castastrophe/envoy/blob/main/.nycrc
