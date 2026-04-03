@@ -1,0 +1,41 @@
+name: Feature request
+description: Propose a new feature or enhancement
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Before opening a feature request, please check the [roadmap discussion](https://github.com/castastrophe/envoy/discussions/12) and [existing issues](https://github.com/castastrophe/envoy/issues) — your idea may already be planned or in progress.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What gap or pain point does this address? Be specific about the scenario.
+      placeholder: When I run envoy in a monorepo with...
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior
+      description: Describe what you'd like envoy to do. Include any CLI flags, config syntax, or output you have in mind.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Other approaches you've thought about or tried.
+    validations:
+      required: false
+
+  - type: textarea
+    id: questions
+    attributes:
+      label: Open questions
+      description: Any edge cases or design decisions that aren't obvious.
+    validations:
+      required: false

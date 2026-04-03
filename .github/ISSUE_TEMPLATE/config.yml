@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Roadmap & feature discussions
+    url: https://github.com/castastrophe/envoy/discussions/12
+    about: Check what's already planned or propose a new idea before opening an issue.
+  - name: Q&A / general help
+    url: https://github.com/castastrophe/envoy/discussions
+    about: Ask questions or discuss usage in GitHub Discussions.
