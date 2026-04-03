@@ -11,7 +11,6 @@
 [![Tests][github-image]][github-url]
 [![NPM version][npm-image]][npm-url]
 [![Coverage][coverage-image]][coverage-url]
-[![Conventional Commits][conventional-commits-image]][conventional-commits-url]
 [![Roadmap][roadmap-image]][roadmap-url]
 
 </div>
@@ -238,8 +237,6 @@ No network calls. No config files. No global state.
 [github-url]: https://github.com/castastrophe/envoy/actions/workflows/test.yml
 [npm-image]: https://img.shields.io/npm/v/@allons-y/envoy.svg
 [npm-url]: https://www.npmjs.com/package/@allons-y/envoy
-[conventional-commits-image]: https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow.svg
-[conventional-commits-url]: https://conventionalcommits.org/
 [coverage-image]: https://img.shields.io/nycrc/castastrophe/envoy
 [coverage-url]: https://github.com/castastrophe/envoy/blob/main/.nycrc
 [roadmap-image]: https://img.shields.io/badge/Roadmap-purple
