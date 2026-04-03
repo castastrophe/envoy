@@ -11,7 +11,6 @@
 [![Tests][github-image]][github-url]
 [![NPM version][npm-image]][npm-url]
 [![Coverage][coverage-image]][coverage-url]
-[![Roadmap][roadmap-image]][roadmap-url]
 
 </div>
 
@@ -225,6 +224,19 @@ The `copy_env` tool accepts `dir`, `force`, `dry_run`, `root_env_path`, and `ski
 
 No network calls. No config files. No global state.
 
+## What's next
+
+Envoy is intentionally minimal today — it does one thing and does it well. The bigger vision is to make it the single tool that bridges your personal secrets and every project you work in, without friction or foot-guns.
+
+A few of the ideas currently being explored:
+
+- **Variable resolution** — expand `${DB_HOST}:${DB_PORT}` references in `~/.env` before writing values, so composed connection strings are handled correctly rather than copied literally
+- **Key aliasing** — map a project's expected `API_KEY` to whatever you've named it in `~/.env` (e.g. `MY_SERVICE_API_KEY`), so naming inconsistencies between projects stop being a manual problem
+- **Pre-commit secret validation** — a `--check` mode for pre-commit hooks and CI that cross-references staged files against known secret values, catching leaks before they reach the remote
+- **Scan controls** — a `--depth` flag to limit recursion depth in large monorepos, and `--ignore`/`--allow` flags (plus a `.envignore` file) for skipping or targeting specific directories
+
+The full roadmap and discussion live in [GitHub Discussions](https://github.com/castastrophe/envoy/discussions/12). Reactions and comments on issues are the best way to signal what matters to you.
+
 ## Requirements
 
 - Node.js >= 24.0.0
@@ -239,5 +251,3 @@ No network calls. No config files. No global state.
 [npm-url]: https://www.npmjs.com/package/@allons-y/envoy
 [coverage-image]: https://img.shields.io/nycrc/castastrophe/envoy
 [coverage-url]: https://github.com/castastrophe/envoy/blob/main/.nycrc
-[roadmap-image]: https://img.shields.io/badge/Roadmap-purple
-[roadmap-url]: https://github.com/castastrophe/envoy/discussions/12
